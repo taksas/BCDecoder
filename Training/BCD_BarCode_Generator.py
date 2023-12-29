@@ -4,8 +4,8 @@ from barcode.ean import JAN
 from PIL import Image
 
 
-num = 100000     # 100000
-dir = "./Training/Datasets/"
+num = 10000     # 100000
+dir = "./Training/Datasets10000/"
 
 
 # csvの読み込み
