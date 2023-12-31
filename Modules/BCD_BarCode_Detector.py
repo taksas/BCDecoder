@@ -37,7 +37,7 @@ def BCD_BarCode_Detector(model_name, image_array, ROBOFLOW_API_KEY, output_path)
 
 if __name__=="__main__":
     model_name = "yolov7-ocr"
-    image_array = np.array(Image.open("C:\\Users\\TAKUMI\\Videos\\iVCam\\20231231095434.jpg"))
+    image_array = np.array(Image.open("C:\\Users\\TAKUMI\\Videos\\iVCam\\20231231102700.jpg"))
     ROBOFLOW_API_KEY = os.environ['ROBOFLOW_API_KEY']
     dt_now = datetime.datetime.now()
     output_path = './Temp/'  + dt_now.strftime('%Y%m%d%H%M%S') + ".jpg"
