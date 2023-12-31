@@ -11,8 +11,11 @@ import datetime
 # $env:ROBOFLOW_API_KEY = ""
 
 
-def BCD_BarCode_Detector(model, image_array, ROBOFLOW_API_KEY, output_path):
+def BCD_BarCode_Detector(model_name, image_array, ROBOFLOW_API_KEY, output_path):
 
+    rf = Roboflow(api_key=ROBOFLOW_API_KEY)
+    project = rf.workspace().project(model_name)
+    model = project.version(1).model
 
     result = model.predict(image_array).json()
     print(result)
@@ -33,12 +36,10 @@ def BCD_BarCode_Detector(model, image_array, ROBOFLOW_API_KEY, output_path):
 
 
 if __name__=="__main__":
-    rf = Roboflow(api_key=ROBOFLOW_API_KEY)
-    project = rf.workspace().project("yolov7-ocr")
-    model = project.version(1).model
-    image_array = np.array(Image.open("C:\\Users\\TAKUMI\\Pictures\\Camera Roll\\WIN_20231231_09_05_57_Pro.jpg"))
+    model_name = "yolov7-ocr"
+    image_array = np.array(Image.open("C:\\Users\\TAKUMI\\Videos\\iVCam\\20231231095434.jpg"))
     ROBOFLOW_API_KEY = os.environ['ROBOFLOW_API_KEY']
     dt_now = datetime.datetime.now()
     output_path = './Temp/'  + dt_now.strftime('%Y%m%d%H%M%S') + ".jpg"
 
-    BCD_BarCode_Detector(model, image_array, ROBOFLOW_API_KEY, output_path)
+    BCD_BarCode_Detector(model_name, image_array, ROBOFLOW_API_KEY, output_path)
