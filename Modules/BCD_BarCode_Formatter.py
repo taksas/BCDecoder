@@ -45,7 +45,7 @@ def image_binarization(input_image_path, threshold):
 def BCD_BarCode_Formatter(input_image_path):
     
     # まずは2値化
-    threshold = 100 #二値化したい閾値
+    threshold = 150 #二値化したい閾値
     binarized_img = image_binarization(input_image_path, threshold)
     binarized_img_raw = Image.fromarray(binarized_img)
 
@@ -64,6 +64,6 @@ def BCD_BarCode_Formatter(input_image_path):
 
 
 if __name__=="__main__":
-    input_image_path = "C:\\Users\\TAKUMI\\git\\BCDecoder\\Researches\\Resources\\20231231102742.jpg"
+    input_image_path = "C:\\Users\\TAKUMI\\git\\BCDecoder\\Researches\\Resources\\20231231102435.jpg"
 
     BCD_BarCode_Formatter(input_image_path)

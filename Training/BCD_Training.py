@@ -201,7 +201,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period):
     )
 
     # 必要に応じてチェックポイントから再開
-    # model.load_weights("./training_ckpt_v231229-v3_d10000_n512_b512_e40000_20231229203859/cp-040000.ckpt")
+    # model.load_weights("./training_ckpt_20240103211416_v4_231231_d10000_n512_b1_e40000/cp-000001000.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -236,6 +236,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period):
 #%%
 print(DATASET_NUM)
 #%%
-fit_epoch(512, 8, 40000, 100)
+fit_epoch(512, 1, 40000, 100)
 
 # %%
