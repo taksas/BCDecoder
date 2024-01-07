@@ -1,3 +1,6 @@
+# LOG
+## kerasのoptimizerを適宜変えられるようにする直前
+
 #%%
 # 必要に応じてpip
 # !pip install --upgrade pip
@@ -165,12 +168,12 @@ X_train
 # 学習し、テストデータで評価し、スコアを表示する
 # 引数は、中間層の数、バッチサイズ、epoch数
 
-def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
-    ver_name = "v5_240107"
+def fit_epoch(neuron, batch, epochs, ckpt_period):
+    ver_name = "v4_231231"
     
     # チェックポイントの設定
     dt_now = datetime.datetime.now()
-    checkpoint_path = "./training_ckpt_" + dt_now.strftime('%Y%m%d%H%M%S') + "_" + ver_name + "_d" + str(DATASET_NUM) + "_n" + str(neuron)  + "_b" + str(batch) + "_e" + str(epochs) + "_"+ optimizer_name + "/cp-{epoch:09d}.ckpt"
+    checkpoint_path = "./training_ckpt_" + dt_now.strftime('%Y%m%d%H%M%S') + "_" + ver_name + "_d" + str(DATASET_NUM) + "_n" + str(neuron)  + "_b" + str(batch) + "_e" + str(epochs)+ "/cp-{epoch:09d}.ckpt"
     checkpoint_dir = os.path.dirname(checkpoint_path)
     cp_callback = tf.keras.callbacks.ModelCheckpoint(
         checkpoint_path,
@@ -196,7 +199,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     # モデルを構築
     model.compile(
         loss='categorical_crossentropy',
-        optimizer=optimizer_name,
+        optimizer='Adamax',
         metrics=['accuracy']
     )
 
@@ -236,6 +239,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 #%%
 print(DATASET_NUM)
 #%%
-fit_epoch(1024, 128, 40000, 100, 'Adagrad')
+fit_epoch(1024, 128, 40000, 100)
 
 # %%
