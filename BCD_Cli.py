@@ -3,12 +3,15 @@ import keyboard
 from PIL import Image
 
 
-# --- Global Variables ---
+# --- Global Static Variables ---
 default_font = ("meiryo", 15)
 default_font_65px = ("meiryo", 65)
-show_help = True
 # ------------------------
 
+
+# --- Global Variables ---
+show_help = True
+# ------------------------
 
 
 # -------- Texts ---------
@@ -194,6 +197,7 @@ app = App()
 # ------------------------
 
 
+# ヘルプモード切替
 def toggle_help_mode(key):
     global app
     global show_help
@@ -207,7 +211,7 @@ def toggle_help_mode(key):
 
 
 
-keyboard.on_press_key("f1", toggle_help_mode)
+keyboard.on_press_key("f1", toggle_help_mode) # ヘルプモード用F1キー登録
 
 
 
