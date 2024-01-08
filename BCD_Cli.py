@@ -1,16 +1,28 @@
 import customtkinter
 import keyboard
 from PIL import Image
+from pyzbar.pyzbar import decode
+import time
 
+import Modules.JankenJP_Kakeibo_Parser as JankenJP_Kakeibo_Parser
+import BCD_Decorder
 
 # --- Global Static Variables ---
 default_font = ("meiryo", 15)
+default_font_45px = ("meiryo", 45)
 default_font_65px = ("meiryo", 65)
+default_font_72px = ("meiryo", 72)
 # ------------------------
 
 
 # --- Global Variables ---
 show_help = True
+l1_image_area = ""
+l2__frame_upper_1__squares = ""
+l2__frame_upper_3__squares = ""
+help_txt_raw_merchandise_search = ""
+l2__frame_upper_1__time = ""
+l2__frame_upper_3__time = ""
 # ------------------------
 
 
@@ -19,7 +31,9 @@ text_raw_image = "入力されたバーコード画像を表示\n(これはヘ�
 text_raw_compare = "機械学習版デコーダー\nと\nPythonライブラリのデコーダー  の結果を比較"
 text_raw_merchandise_search = "特定したJANコードから商品検索(要ネット接続)"
 text_raw_control = "操作エリア"
-frame_l2__frame_upper_2__desc = "↑ライブラリ版             VS             機械学習版↓"
+text_raw_frame_l2__frame_upper_2__desc = "↑ライブラリ版             VS             機械学習版↓"
+text_raw_waiting = "待機中..."
+text_raw_file_select = "バーコードの\n画像ファイルを\n選択"
 # ------------------------
 
 
@@ -116,6 +130,12 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
     
     # ベースフレーム
     def create_basic_frames(self):
+
+        def button_event():
+            file_name = customtkinter.filedialog.askopenfilename(filetypes=[("image file", "*.png;*.jpeg;*.jpg")])
+            start_main_processes(file_name)
+
+
         self.frame_l1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1500, height=470)
         self.frame_l1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_l1.place(x=10, y=10)
@@ -129,13 +149,21 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         self.frame_l3 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1900, height=100)
         self.frame_l3.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_l3.place(x=10, y=890)
-        self.help_txt_raw_merchandise_search = customtkinter.CTkLabel(master=self.frame_l3, text=text_raw_merchandise_search, font=default_font_65px)
+        self.help_txt_raw_merchandise_search = customtkinter.CTkLabel(master=self.frame_l3, text=text_raw_waiting, font=default_font_65px)
         self.help_txt_raw_merchandise_search.place(x=10, y=1)
+        global help_txt_raw_merchandise_search
+        help_txt_raw_merchandise_search = self.help_txt_raw_merchandise_search
 
 
         self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=390, height=470)
         self.frame_r1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_r1.place(x=1520, y=10)
+        self.frame_r1.button = customtkinter.CTkButton(self.frame_r1, text=text_raw_file_select, width=300, height=100, font=default_font_45px, command=button_event)
+        self.frame_r1.button.place(x=10, y=10)
+
+        
+        
+
         
 
     
@@ -146,6 +174,14 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         tk_image = customtkinter.CTkImage(light_image=img, size=(1490, 460))
         self_l1.image_area = customtkinter.CTkLabel(master=self_l1, image=tk_image, text='')
         self_l1.image_area.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
+        global l1_image_area
+        l1_image_area = self_l1.image_area
+    
+    # L1コンポーネントを「更新」
+    def update_each_components_l1(self, file_name):
+        img = resize_image_with_aspect_ratio(file_name, (1490, 460))
+        tk_image = customtkinter.CTkImage(light_image=img, size=(1490, 460))
+        l1_image_area.configure(image=tk_image)
     
 
     # L2コンポーネントを作成（pythonライブラリと機械学習版を比較するやつ）
@@ -158,16 +194,24 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         for i in range(13):
             temp_square = customtkinter.CTkFrame(master=self_l2.frame_upper_1, border_color="gray", border_width=1, width=110, height=110)
             temp_square.grid(row=0, column=i, padx=5, pady=5, sticky="s")
+
+            temp_square.text_area = customtkinter.CTkLabel(master=temp_square, text="", font=default_font_72px, fg_color="transparent") # 各数字用label
+            temp_square.text_area.place(x=30, y=1)
             self_l2.frame_upper_1.squares.append(temp_square)
+        global l2__frame_upper_1__squares
+        l2__frame_upper_1__squares = self_l2.frame_upper_1.squares
         # 処理速度計測用
         customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="  ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
-        self_l2.frame_upper_1.time = customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="? ? ?", font=default_font_65px).grid(row=0, column=14, padx=5, pady=5, sticky="s")
-        customtkinter.CTkLabel(master=self_l2.frame_upper_1, text=" s", font=default_font_65px).grid(row=0, column=15, padx=5, pady=5, sticky="s")
+        self_l2.frame_upper_1.time = customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="? ? ?", font=default_font_65px)
+        self_l2.frame_upper_1.time.grid(row=0, column=14, padx=5, pady=5, sticky="s")
+        global l2__frame_upper_1__time
+        l2__frame_upper_1__time = self_l2.frame_upper_1.time
+        customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="ms", font=default_font_65px).grid(row=0, column=15, padx=5, pady=5, sticky="s")
 
         # 説明部分
         self_l2.frame_upper_2 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=1880, height=100)
         self_l2.frame_upper_2.place(x=10, y=140)
-        customtkinter.CTkLabel(master=self_l2.frame_upper_2, text=frame_l2__frame_upper_2__desc, font=default_font_65px).place(x=10, y=10)
+        customtkinter.CTkLabel(master=self_l2.frame_upper_2, text=text_raw_frame_l2__frame_upper_2__desc, font=default_font_65px).place(x=10, y=10)
 
         # 機械学習版部分
         self_l2.frame_upper_3 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=1880, height=100)
@@ -176,14 +220,20 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         for i in range(13):
             temp_square = customtkinter.CTkFrame(master=self_l2.frame_upper_3, border_color="gray", border_width=1, width=110, height=110)
             temp_square.grid(row=0, column=i, padx=5, pady=5, sticky="s")
+
+            temp_square.text_area = customtkinter.CTkLabel(master=temp_square, text="", font=default_font_72px, fg_color="transparent") # 各数字用label
+            temp_square.text_area.place(x=30, y=1)
             self_l2.frame_upper_3.squares.append(temp_square)
-            # print(temp_square)
+        global l2__frame_upper_3__squares
+        l2__frame_upper_3__squares = self_l2.frame_upper_3.squares
         # 処理速度計測用
         customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="  ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
-        self_l2.frame_upper_3.time = customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="? ? ?", font=default_font_65px).grid(row=0, column=14, padx=5, pady=5, sticky="s")
-        customtkinter.CTkLabel(master=self_l2.frame_upper_3, text=" s", font=default_font_65px).grid(row=0, column=15, padx=5, pady=5, sticky="s")
-
-
+        self_l2.frame_upper_3.time = customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="? ? ?", font=default_font_65px)
+        self_l2.frame_upper_3.time.grid(row=0, column=14, padx=5, pady=5, sticky="s")
+        global l2__frame_upper_3__time
+        l2__frame_upper_3__time = self_l2.frame_upper_3.time
+        customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="s", font=default_font_65px).grid(row=0, column=15, padx=5, pady=5, sticky="s")
+    
 
 
 
@@ -212,6 +262,48 @@ def toggle_help_mode(key):
 
 
 keyboard.on_press_key("f1", toggle_help_mode) # ヘルプモード用F1キー登録
+
+
+# メイン機能
+def start_main_processes(file_name):
+    file_img = Image.open(file_name)
+    app.update_each_components_l1(file_name) # 画像プレビューを更新
+    # pyzbarでバーコード読み取り
+
+    time_sta = time.perf_counter() # 時間計測開始
+    decoded_list = decode(file_img)
+    time_end = time.perf_counter() # 時間計測終了
+    li_tim = time_end- time_sta
+    l2__frame_upper_1__time.configure(text=str(li_tim*1000)[0:4])
+    decoded_data_library = decoded_list[0].data
+    decoded_data_library = str(decoded_data_library).replace('b', '').replace("'", '')
+    print("Decoded by pyzbar:", decoded_data_library)
+    
+
+    # L2フレーム内ライブラリ版表示領域を更新
+    for decoded_char, square in zip(decoded_data_library, l2__frame_upper_1__squares):
+        square.text_area.configure(text=decoded_char)
+
+
+    decoded_data_ml = "4902750910454" # テスト用！！！
+
+    time_sta = time.perf_counter() # 時間計測開始
+    # decoded_data_ml = BCD_Decorder.BCD_Decorder(file_img)
+    time_end = time.perf_counter() # 時間計測終了
+    li_tim = time_end- time_sta
+    l2__frame_upper_3__time.configure(text=str(li_tim*1000)[0:4])
+
+    # L2フレーム内機械学習版表示領域を更新
+    for decoded_char_li, decoded_char_ml, square in zip(decoded_data_library, decoded_data_ml, l2__frame_upper_3__squares):
+        square.text_area.configure(text=decoded_char_ml)
+        color = "green"
+        if(decoded_char_li != decoded_char_ml): color = "red"
+        square.configure(fg_color=color)
+    
+
+    search_result = JankenJP_Kakeibo_Parser.JankenJP_Kakeibo_Parser(decoded_data_ml) # じゃんけんJP家計簿で商品検索
+    search_result = search_result[0] + ", " + search_result[3] + ", " + search_result[4]
+    help_txt_raw_merchandise_search.configure(text=search_result) # L3コンポーネント（商品検索表示するやつ）を更新
 
 
 
