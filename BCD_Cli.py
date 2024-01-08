@@ -5,13 +5,16 @@ from pyzbar.pyzbar import decode
 import time
 
 import Modules.JankenJP_Kakeibo_Parser as JankenJP_Kakeibo_Parser
-import BCD_Decorder
+import Modules.BCD_Decorder as BCD_Decorder
+import Modules.BCD_BarCode_Formatter as BCD_BarCode_Formatter
 
 # --- Global Static Variables ---
 default_font = ("meiryo", 15)
 default_font_45px = ("meiryo", 45)
 default_font_65px = ("meiryo", 65)
 default_font_72px = ("meiryo", 72)
+model_path = "Training/TrainedModel/20240108114046_v5_240107_d10000_n512_b1_e1_Adamax"
+model = BCD_Decorder.model_loader(model_path)
 # ------------------------
 
 
@@ -31,7 +34,7 @@ text_raw_image = "入力されたバーコード画像を表示\n(これはヘ�
 text_raw_compare = "機械学習版デコーダー\nと\nPythonライブラリのデコーダー  の結果を比較"
 text_raw_merchandise_search = "特定したJANコードから商品検索(要ネット接続)"
 text_raw_control = "操作エリア"
-text_raw_frame_l2__frame_upper_2__desc = "↑ライブラリ版             VS             機械学習版↓"
+text_raw_frame_l2__frame_upper_2__desc = "↑pyzbar(ライブラリ)版     VS           機械学習版↓       (ms)"
 text_raw_waiting = "待機中..."
 text_raw_file_select = "バーコードの\n画像ファイルを\n選択"
 # ------------------------
@@ -201,12 +204,11 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         global l2__frame_upper_1__squares
         l2__frame_upper_1__squares = self_l2.frame_upper_1.squares
         # 処理速度計測用
-        customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="  ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
-        self_l2.frame_upper_1.time = customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="? ? ?", font=default_font_65px)
+        customtkinter.CTkLabel(master=self_l2.frame_upper_1, text=" ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
+        self_l2.frame_upper_1.time = customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="? ? ? ?", font=default_font_65px)
         self_l2.frame_upper_1.time.grid(row=0, column=14, padx=5, pady=5, sticky="s")
         global l2__frame_upper_1__time
         l2__frame_upper_1__time = self_l2.frame_upper_1.time
-        customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="ms", font=default_font_65px).grid(row=0, column=15, padx=5, pady=5, sticky="s")
 
         # 説明部分
         self_l2.frame_upper_2 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=1880, height=100)
@@ -227,12 +229,12 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         global l2__frame_upper_3__squares
         l2__frame_upper_3__squares = self_l2.frame_upper_3.squares
         # 処理速度計測用
-        customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="  ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
-        self_l2.frame_upper_3.time = customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="? ? ?", font=default_font_65px)
+        customtkinter.CTkLabel(master=self_l2.frame_upper_3, text=" ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
+        self_l2.frame_upper_3.time = customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="? ? ? ?", font=default_font_65px)
         self_l2.frame_upper_3.time.grid(row=0, column=14, padx=5, pady=5, sticky="s")
         global l2__frame_upper_3__time
         l2__frame_upper_3__time = self_l2.frame_upper_3.time
-        customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="s", font=default_font_65px).grid(row=0, column=15, padx=5, pady=5, sticky="s")
+
     
 
 
@@ -268,14 +270,18 @@ keyboard.on_press_key("f1", toggle_help_mode) # ヘルプモード用F1キー登
 def start_main_processes(file_name):
     file_img = Image.open(file_name)
     app.update_each_components_l1(file_name) # 画像プレビューを更新
-    # pyzbarでバーコード読み取り
 
+
+    # ライブラリ版(pyzbar)
     time_sta = time.perf_counter() # 時間計測開始
     decoded_list = decode(file_img)
     time_end = time.perf_counter() # 時間計測終了
     li_tim = time_end- time_sta
-    l2__frame_upper_1__time.configure(text=str(li_tim*1000)[0:4])
-    decoded_data_library = decoded_list[0].data
+    l2__frame_upper_1__time.configure(text=str(li_tim*1000)[0:7])
+    try:
+        decoded_data_library = decoded_list[0].data
+    except:
+        decoded_data_library = "?????????????"
     decoded_data_library = str(decoded_data_library).replace('b', '').replace("'", '')
     print("Decoded by pyzbar:", decoded_data_library)
     
@@ -285,13 +291,11 @@ def start_main_processes(file_name):
         square.text_area.configure(text=decoded_char)
 
 
-    decoded_data_ml = "4902750910454" # テスト用！！！
-
-    time_sta = time.perf_counter() # 時間計測開始
-    # decoded_data_ml = BCD_Decorder.BCD_Decorder(file_img)
-    time_end = time.perf_counter() # 時間計測終了
-    li_tim = time_end- time_sta
-    l2__frame_upper_3__time.configure(text=str(li_tim*1000)[0:4])
+    # 機械学習版
+    # decoded_data_ml, li_tim = "4902750910454", 1234 # テスト用！！！
+    decoded_data_ml, li_tim = BCD_Decorder.BCD_Decorder(model, file_img, file_name, BCD_BarCode_Formatter)
+    
+    l2__frame_upper_3__time.configure(text=str(li_tim*1000)[0:7])
 
     # L2フレーム内機械学習版表示領域を更新
     for decoded_char_li, decoded_char_ml, square in zip(decoded_data_library, decoded_data_ml, l2__frame_upper_3__squares):
@@ -302,7 +306,10 @@ def start_main_processes(file_name):
     
 
     search_result = JankenJP_Kakeibo_Parser.JankenJP_Kakeibo_Parser(decoded_data_ml) # じゃんけんJP家計簿で商品検索
-    search_result = search_result[0] + ", " + search_result[3] + ", " + search_result[4]
+    try:
+        search_result = search_result[0] + ", " + search_result[3] + ", " + search_result[4]
+    except:
+        search_result = "特定できませんでした（JANコードエラー/未登録）"
     help_txt_raw_merchandise_search.configure(text=search_result) # L3コンポーネント（商品検索表示するやつ）を更新
 
 

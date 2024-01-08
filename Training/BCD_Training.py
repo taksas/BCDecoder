@@ -35,7 +35,7 @@ import datetime
 
 #%%
 # DIRS
-DATASET_NUM = 100000
+DATASET_NUM = 1
 DIRS_DATASET = "../Training/Datasets" + str(DATASET_NUM) + "/"
 
 
@@ -201,7 +201,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     )
 
     # 必要に応じてチェックポイントから再開
-    # model.load_weights("./training_ckpt_20240103211416_v4_231231_d10000_n512_b1_e40000/cp-000001000.ckpt")
+    model.load_weights("./training_ckpt_20240105163428_v4_231231_d10000_n512_b1_e40000/cp-000000500.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -210,6 +210,9 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
         callbacks=[cp_callback],
         verbose=1,
         validation_split=0.1)
+    
+    # モデルの保存
+    model.save("./TrainedModel/" + dt_now.strftime('%Y%m%d%H%M%S') + "_" + ver_name + "_d" + str(DATASET_NUM) + "_n" + str(neuron)  + "_b" + str(batch) + "_e" + str(epochs) + "_"+ optimizer_name)
     
    # モデルを評価
     score = model.evaluate(X_test, y_test, verbose=1)
@@ -236,6 +239,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 #%%
 print(DATASET_NUM)
 #%%
-fit_epoch(512, 1, 40000, 100)
+fit_epoch(512, 1, 1, 100, "Adamax")
 
 # %%
