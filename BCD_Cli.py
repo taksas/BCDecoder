@@ -13,7 +13,7 @@ default_font = ("meiryo", 15)
 default_font_45px = ("meiryo", 45)
 default_font_65px = ("meiryo", 65)
 default_font_72px = ("meiryo", 72)
-model_path = "Training/TrainedModel/20240108114046_v5_240107_d10000_n512_b1_e1_Adamax"
+model_path = "Training/TrainedModel/20240108222255_v6_240108_d10000_n512_b256_e200_Adamax"
 model = BCD_Decorder.model_loader(model_path)
 # ------------------------
 
@@ -307,7 +307,7 @@ def start_main_processes(file_name):
 
     search_result = JankenJP_Kakeibo_Parser.JankenJP_Kakeibo_Parser(decoded_data_ml) # じゃんけんJP家計簿で商品検索
     try:
-        search_result = search_result[0] + ", " + search_result[3] + ", " + search_result[4]
+        search_result = search_result[0]
     except:
         search_result = "特定できませんでした（JANコードエラー/未登録）"
     help_txt_raw_merchandise_search.configure(text=search_result) # L3コンポーネント（商品検索表示するやつ）を更新

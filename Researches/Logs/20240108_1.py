@@ -1,3 +1,5 @@
+# v0108前。 シェイプを(112,)から(337,)に変更
+
 #%%
 # 必要に応じてpip
 # !pip install --upgrade pip
@@ -35,8 +37,8 @@ import datetime
 
 #%%
 # DIRS
-DATASET_NUM = 10000
-DIRS_DATASET = "../Training/Datasets_v0108/Dataset" + str(DATASET_NUM) + "/"
+DATASET_NUM = 1
+DIRS_DATASET = "../Training/Datasets" + str(DATASET_NUM) + "/"
 
 
 
@@ -64,6 +66,14 @@ file_names
 
 
 #%%
+### 画像をnumpy配列にするための関数
+def jpeg_to_numpy(image_path):
+    # JPEG画像を開く
+    image = Image.open(image_path)
+    # NumPy配列に変換
+    numpy_array = np.array(image)
+    
+    return numpy_array
 
 def convert_to_grayscale(numpy_array):
     # グレーと言わず2値化
@@ -84,17 +94,14 @@ X, y = [], []
 
 #%%
 for file_name in file_names:
-    numpy_array = np.array(Image.open(DIRS_DATASET + file_name)) # 画像をnumpy配列にする
-    # print(numpy_array)
+    numpy_array = jpeg_to_numpy(DIRS_DATASET + file_name)
     grayscale_array = convert_to_grayscale(numpy_array)
-    # print(grayscale_array)
     for i in range(13):
-        # grayscale_array1 = np.where(np.all(grayscale_array == 0, axis=-1), 0, 255)
-        # print(grayscale_array1)
-        grayscale_array2 = np.where(grayscale_array == 255, i+1, 0)
-        # print(grayscale_array2)
+        grayscale_array1 = np.where(np.all(grayscale_array == [0, 0, 0], axis=-1), 0, 255)
+        grayscale_array2 = np.where(grayscale_array1 == 255, i+1, 0)
         X.append(grayscale_array2)
         y.append(file_name[i])
+
 
 
 
@@ -161,7 +168,7 @@ X_train
 # 引数は、中間層の数、バッチサイズ、epoch数
 
 def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
-    ver_name = "v6_240108"
+    ver_name = "v5_240107"
     
     # チェックポイントの設定
     dt_now = datetime.datetime.now()
@@ -180,11 +187,11 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 
     # モデルの構造を定義
     model = keras.models.Sequential()
-    model.add(tf.keras.layers.Flatten(input_shape=(337, )))
+    model.add(tf.keras.layers.Flatten(input_shape=(112, )))
     model.add(Dense(neuron, activation='relu'))
     
     # 畳み込み層を追加
-    # model.add(tf.keras.layers.Flatten(tf.keras.layers.Conv2D(filters=neuron, kernel_size=(3, 3), activation='relu', input_shape=(1, 337, 3))))
+    # model.add(tf.keras.layers.Flatten(tf.keras.layers.Conv2D(filters=neuron, kernel_size=(3, 3), activation='relu', input_shape=(1, 112, 3))))
 
     model.add(Dense(10, activation='softmax')) # 10つのラベルがありsoftmaxで最後の層作る
 
@@ -196,7 +203,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     )
 
     # 必要に応じてチェックポイントから再開
-    # model.load_weights("./training_ckpt_20240108223353_v6_240108_d10000_n512_b256_e120000_Adamax/cp-000020000.ckpt")
+    model.load_weights("./training_ckpt_20240105163428_v4_231231_d10000_n512_b1_e40000/cp-000000500.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -234,6 +241,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 #%%
 print(DATASET_NUM)
 #%%
-fit_epoch(256, 32, 120000, 1000, "Adamax")
+fit_epoch(512, 1, 1, 100, "Adamax")
 
 # %%

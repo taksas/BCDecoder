@@ -65,7 +65,7 @@ def BCD_Decorder(model, image, input_image_path, BCD_BarCode_Formatter):
 if __name__=="__main__":
     import BCD_BarCode_Formatter
     # input_image_path = "Researches/Resources4567890123456.jpeg"
-    input_image_path = "Training/Datasets10/4971964585943.jpeg"
+    input_image_path = "Training/Datasets_Test_Cli/normal_4970111560975.jpeg"
     model_path = "Training/TrainedModel/20240108114046_v5_240107_d10000_n512_b1_e1_Adamax"
     model = model_loader(model_path)
     image = Image.open(input_image_path)

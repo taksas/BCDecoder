@@ -45,16 +45,16 @@ def image_binarization(input_image_path, threshold):
     return binarized_img
 
 
-def image_arrayization(image):
-    # 画像のサイズ取得
-    image_width, image_height = image.size
-    arrayed_image = np.array(image)
+# def image_arrayization(image):
+#     # 画像のサイズ取得
+#     image_width, image_height = image.size
+#     arrayed_image = np.array(image)
 
-    smalled_arrayed_image = np.array([])
-    for i in range(0, image_width, math.ceil(image_width/112)):
-        smalled_arrayed_image = np.append(smalled_arrayed_image, arrayed_image[0][i])
-    # print(smalled_arrayed_image)
-    return smalled_arrayed_image
+#     smalled_arrayed_image = np.array([])
+#     for i in range(0, image_width, math.ceil(image_width/337)):
+#         smalled_arrayed_image = np.append(smalled_arrayed_image, arrayed_image[0][i])
+#     # print(smalled_arrayed_image)
+#     return smalled_arrayed_image
 
 
 # 画像を2値化
@@ -65,7 +65,7 @@ def BCD_BarCode_Formatter(image, input_image_path):
 
     # 真ん中部分だけ画像を切り取る
     image = image.crop((0, image_height // 2, image_width, image_height // 2 + 1))
-    binarized_img_path = './Temp/'  + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg"
+    binarized_img_path = './Outputs/'  + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg"
     image.save(binarized_img_path)
 
     # まずは2値化
@@ -73,23 +73,23 @@ def BCD_BarCode_Formatter(image, input_image_path):
     binarized_img_array = image_binarization(binarized_img_path, threshold)
     binarized_img = Image.fromarray(binarized_img_array)
     # # print(binarized_img_raw)
-    # binarized_img_raw.save('./Temp/'  + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg")
+    # binarized_img_raw.save('./Outputs/'  + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg")
 
 
     # 指定の色がどこにあるか数える
     target_color = (0, 0, 0)  # 黒色指定
     target_position_right, target_position_left = find_color(binarized_img, target_color)
     print(target_position_right, target_position_left)
-    # binarized_img_raw.save('./Temp/'  + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg")
+    # binarized_img_raw.save('./Outputs/'  + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg")
 
     # 画像を切り取る
     cropped_binarized_img = binarized_img.crop((target_position_left[0], 0, target_position_right[0] + 1, 1))
-    # cropped_binarized_img.save("./Temp/b.jpg")
+    # cropped_binarized_img.save("./Outputs/b.jpg")
     # print(np.array(cropped_binarized_img))
 
 
-    resized_cropped_binarized_img = cropped_binarized_img.resize((112, 1), resample=Image.NEAREST) # (112, 1)、学習時のサイズにリサイズ
-    # resized_cropped_binarized_img.save('./Temp/' + "resized_cropped_binarized_img" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg")
+    resized_cropped_binarized_img = cropped_binarized_img.resize((337, 1), resample=Image.NEAREST) # (337, 1)、学習時のサイズにリサイズ
+    resized_cropped_binarized_img.save('./Outputs/' + "resized_cropped_binarized_img" + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg")
     arrayed_resized_cropped_binarized_img = np.array(resized_cropped_binarized_img)
 
     # arrayed_resized_cropped_binarized_img = image_arrayization(cropped_binarized_img)
@@ -110,8 +110,10 @@ def BCD_BarCode_Formatter(image, input_image_path):
 
 if __name__=="__main__":
     # input_image_path = "Researches/Resources_highres_4567890123456.jpeg"
-    input_image_path = "Training/Datasets1/4525491507698.jpeg"
-    image = Image.open(input_image_path)
+    # input_image_path = "Training/Datasets1/4525491507698.jpeg"
+    input_image_path = "Temp/4915356823998cropped.jpeg" # サイズ適正テスト用
 
+    image = Image.open(input_image_path)
+    # print(np.array(image))
     arrayed_resized_cropped_binarized_img = BCD_BarCode_Formatter(image, input_image_path)
     # print(arrayed_resized_cropped_binarized_img)
