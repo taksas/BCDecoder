@@ -4,7 +4,7 @@
 # 必要に応じてpip
 # !pip install --upgrade pip
 # !pip install numpy scikit-learn tensorflow matplotlib pillow pandas
-!pip install seaborn
+# !pip install seaborn
 
 
 
@@ -41,7 +41,7 @@ import datetime
 
 #%%
 # DIRS
-DATASET_NUM = 10000
+DATASET_NUM = 1000
 DIRS_DATASET = "../Training/Datasets_v0108/Dataset" + str(DATASET_NUM) + "/"
 
 
@@ -278,6 +278,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 print(DATASET_NUM)
 #%%
 # fit_epoch(中間層の数, バッチサイズ, 学習回数, チェックポイントの作成タイミング, 最適化関数)
-fit_epoch(     64,          1,        80000,                   200,              "Adamax")
+fit_epoch(     64,          1,        800000,                   10000,              "Adamax")
 
 # %%
