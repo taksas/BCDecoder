@@ -41,7 +41,7 @@ import datetime
 
 #%%
 # DIRS
-DATASET_NUM = 1000
+DATASET_NUM = 10000
 DIRS_DATASET = "../Training/Datasets_v0108/Dataset" + str(DATASET_NUM) + "/"
 
 
@@ -187,11 +187,11 @@ X_train
 # 引数は、中間層の数、バッチサイズ、epoch数
 
 def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
-    ver_name = "v7_240109"
+    ver_name = "v8_240109"
     
     # チェックポイントの設定
     dt_now = datetime.datetime.now()
-    checkpoint_path = "./training_ckpt_" + dt_now.strftime('%Y%m%d%H%M%S') + "_" + ver_name + "_d" + str(DATASET_NUM) + "_n" + str(neuron)  + "_b" + str(batch) + "_e" + str(epochs) + "_"+ optimizer_name + "/cp-{epoch:09d}.ckpt"
+    checkpoint_path = "./training_ckpt_" + dt_now.strftime('%Y%m%d%H%M%S') + "_" + ver_name + "_d" + str(DATASET_NUM) + "_n" + str(neuron)  + "_b" + str(batch) + "_e" + str(epochs) + "_c" + str(ckpt_period) + "_" + optimizer_name + "/cp-{epoch:09d}.ckpt"
     checkpoint_dir = os.path.dirname(checkpoint_path)
     cp_callback = tf.keras.callbacks.ModelCheckpoint(
         checkpoint_path,
@@ -222,7 +222,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     )
 
     # 必要に応じてチェックポイントから再開
-    # model.load_weights("./training_ckpt_20240109084448_v6_240108_d10000_n256_b32_e120000_Adamax/cp-000001000.ckpt")
+    model.load_weights("./training_ckpt_20240109200453_v7_240109_d10000_n4096_b64_e80000_Adamax/cp-000000200.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -278,6 +278,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 print(DATASET_NUM)
 #%%
 # fit_epoch(中間層の数, バッチサイズ, 学習回数, チェックポイントの作成タイミング, 最適化関数)
-fit_epoch(     64,          1,        800000,                   10000,              "Adamax")
+fit_epoch(     4096,          64,        1,                  100,              "Adamax")
 
 # %%
