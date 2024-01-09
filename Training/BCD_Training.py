@@ -1,8 +1,10 @@
+# v7_240109(評価指標追加)
+
 #%%
 # 必要に応じてpip
 # !pip install --upgrade pip
 # !pip install numpy scikit-learn tensorflow matplotlib pillow pandas
-
+!pip install seaborn
 
 
 
@@ -13,6 +15,10 @@ import numpy as np
 
 # ランダムにシャッフルして，学習・テストに分割するモジュール
 from sklearn.model_selection import ShuffleSplit
+
+# 評価指標の計算用
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
 
 # 深層学習のライブラリをインポート
 import tensorflow as tf
@@ -110,23 +116,43 @@ X
 y
 #%%
 # ラベルデータをone-hotベクトルに直す
-labels = {
-    0: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-    1: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], 
-    2: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0], 
-    3: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], 
-    4: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
-    5: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0], 
-    6: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], 
-    7: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0], 
-    8: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0], 
-    9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-}
+def one_hot_vector(y):
+    labels = {
+        0: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+        1: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], 
+        2: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0], 
+        3: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], 
+        4: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
+        5: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0], 
+        6: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], 
+        7: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0], 
+        8: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0], 
+        9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+    }
 
-y = np.array(list(map(lambda v : labels[v] , y)))
+    y = np.array(list(map(lambda v : labels[v] , y)))
+    return y
 
+# ラベルデータをone-hotベクトル「から」直す
+def one_hot_vector_restore(y):
+    labels = {
+        (1, 0, 0, 0, 0, 0, 0, 0, 0, 0): 0,
+        (0, 1, 0, 0, 0, 0, 0, 0, 0, 0): 1,
+        (0, 0, 1, 0, 0, 0, 0, 0, 0, 0): 2,
+        (0, 0, 0, 1, 0, 0, 0, 0, 0, 0): 3,
+        (0, 0, 0, 0, 1, 0, 0, 0, 0, 0): 4,
+        (0, 0, 0, 0, 0, 1, 0, 0, 0, 0): 5,
+        (0, 0, 0, 0, 0, 0, 1, 0, 0, 0): 6,
+        (0, 0, 0, 0, 0, 0, 0, 1, 0, 0): 7,
+        (0, 0, 0, 0, 0, 0, 0, 0, 1, 0): 8,
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 1): 9,
+    }
 
+    y = np.array([labels[tuple(one_hot)] for one_hot in y])
+    return y
 
+#%%
+y = one_hot_vector(y)
 
 #%%
 y
@@ -161,7 +187,7 @@ X_train
 # 引数は、中間層の数、バッチサイズ、epoch数
 
 def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
-    ver_name = "v6_240108"
+    ver_name = "v7_240109"
     
     # チェックポイントの設定
     dt_now = datetime.datetime.now()
@@ -196,7 +222,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     )
 
     # 必要に応じてチェックポイントから再開
-    # model.load_weights("./training_ckpt_20240108223353_v6_240108_d10000_n512_b256_e120000_Adamax/cp-000020000.ckpt")
+    model.load_weights("./training_ckpt_20240109084448_v6_240108_d10000_n256_b32_e120000_Adamax/cp-000001000.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -209,11 +235,28 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     # モデルの保存
     model.save("./TrainedModel/" + dt_now.strftime('%Y%m%d%H%M%S') + "_" + ver_name + "_d" + str(DATASET_NUM) + "_n" + str(neuron)  + "_b" + str(batch) + "_e" + str(epochs) + "_"+ optimizer_name)
     
-   # モデルを評価
+    # モデルを評価
     score = model.evaluate(X_test, y_test, verbose=1)
-    print('正解率=', score[1], 'loss=', score[0])
+    print('正解率(Accuracy)=', score[1], 'loss=', score[0])
+
+    # 予測を取得
+    predictions = model.predict(X_test)
+    predicted_labels = tf.argmax(predictions, axis=1).numpy()
+    y_test_restored = one_hot_vector_restore(y_test) # one-hotベクトル「から」直す
+
+    print(predicted_labels)
+
+    # classification_reportを使用して評価指標を表示
+    df_report = pd.DataFrame(classification_report(y_test_restored, predicted_labels, output_dict=True)).T
+    print(df_report)
+
+    # seabornのヒートマップ
+    sns.heatmap(confusion_matrix(y_test_restored, predicted_labels), annot=True)
+    plt.xlabel("pred")
+    plt.ylabel('true')
+    plt.show()
     
-     # 学習の様子をグラフへ描画 
+    # 学習の様子をグラフへ描画 
     # 正解率の推移をプロット
     plt.plot(hist.history['accuracy'])
     plt.plot(hist.history['val_accuracy'])
@@ -234,6 +277,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 #%%
 print(DATASET_NUM)
 #%%
-fit_epoch(256, 32, 120000, 1000, "Adamax")
+fit_epoch(256, 32, 1, 100, "Adamax")
 
 # %%
