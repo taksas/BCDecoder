@@ -222,7 +222,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     )
 
     # 必要に応じてチェックポイントから再開
-    model.load_weights("./training_ckpt_20240109084448_v6_240108_d10000_n256_b32_e120000_Adamax/cp-000001000.ckpt")
+    # model.load_weights("./training_ckpt_20240109084448_v6_240108_d10000_n256_b32_e120000_Adamax/cp-000001000.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -277,6 +277,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 #%%
 print(DATASET_NUM)
 #%%
-fit_epoch(256, 32, 1, 100, "Adamax")
+# fit_epoch(中間層の数, バッチサイズ, 学習回数, チェックポイントの作成タイミング, 最適化関数)
+fit_epoch(     64,          1,        80000,                   200,              "Adamax")
 
 # %%
