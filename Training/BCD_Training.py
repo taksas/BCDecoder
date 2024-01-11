@@ -1,4 +1,5 @@
-# v7_240109(評価指標追加)
+# v9_240111
+# (1000万個のデータセット導入検討時、番目指定印加処理が重くなりすぎ半日かかる予想になったので、その処理をBCD_Data_Processing_for_Input.pyとして別個に分けた。これで、再起動の度に印加処理をしなくて良くなった)
 
 #%%
 # 必要に応じてpip
@@ -41,98 +42,25 @@ import datetime
 
 #%%
 # DIRS
-DATASET_NUM = 10000
-DIRS_DATASET = "../Training/Datasets_v0108/Dataset" + str(DATASET_NUM) + "/"
-
-
-
-
-#%%
-# ファイルを取得, 配列に格納, Pythonリスト型をnumpy.ndarray型に変換
-file_names = []
-    
-# フォルダ内のファイルを取得
-files = os.listdir(DIRS_DATASET)
-
-# ファイル名を配列に格納
-for file in files:
-    file_names.append(file)
-
-# Pythonリスト型をnumpy.ndarray型に変換
-file_names = np.array(file_names)
-
+DATASET_NUM = 10
+DIRS_DATASET = "../Training/Datasets_v0108_AfterProcessing/" + str(DATASET_NUM) + ".npz"
 
 
 
 #%%
-file_names
-
-
-
-#%%
-
-def convert_to_grayscale(numpy_array):
-    # グレーと言わず2値化
-    grayscale_array = np.where(numpy_array <= 128, 0, 255)
-    # plt.imshow(grayscale_array) # こいつらのせいで処理が重かった。出力系は要注意
-    # print(grayscale_array)
-    return grayscale_array
-
-
-
-
+# NpzFile形式からXとyを取得
+npz_kw = np.load(DIRS_DATASET)
+X = npz_kw["arr_0"]
+y = npz_kw["arr_1"]
 
 #%%
-### 画像を配列にしてよしなに
-X, y = [], []
-
-
-
-#%%
-for file_name in file_names:
-    numpy_array = np.array(Image.open(DIRS_DATASET + file_name)) # 画像をnumpy配列にする
-    # print(numpy_array)
-    grayscale_array = convert_to_grayscale(numpy_array)
-    # print(grayscale_array)
-    for i in range(13):
-        # grayscale_array1 = np.where(np.all(grayscale_array == 0, axis=-1), 0, 255)
-        # print(grayscale_array1)
-        grayscale_array2 = np.where(grayscale_array == 255, i+1, 0)
-        # print(grayscale_array2)
-        X.append(grayscale_array2)
-        y.append(file_name[i])
-
-
-
-#%%
-# X, yをPythonリスト型をnumpy.ndarray型に変換
-X = np.array(X)
-X = X.squeeze()
-y = np.array(y, dtype=int)
-
-#%%
+print(type(X))
 X
 #%%
+print(type(y))
 y
+
 #%%
-# ラベルデータをone-hotベクトルに直す
-def one_hot_vector(y):
-    labels = {
-        0: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-        1: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0], 
-        2: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0], 
-        3: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], 
-        4: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
-        5: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0], 
-        6: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0], 
-        7: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0], 
-        8: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0], 
-        9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-    }
-
-    y = np.array(list(map(lambda v : labels[v] , y)))
-    return y
-
 # ラベルデータをone-hotベクトル「から」直す
 def one_hot_vector_restore(y):
     labels = {
@@ -151,11 +79,8 @@ def one_hot_vector_restore(y):
     y = np.array([labels[tuple(one_hot)] for one_hot in y])
     return y
 
-#%%
-y = one_hot_vector(y)
 
-#%%
-y
+
 #%%
 ### データの分割
 ss = ShuffleSplit(n_splits=1,      # 分割を1個生成
@@ -187,7 +112,7 @@ X_train
 # 引数は、中間層の数、バッチサイズ、epoch数
 
 def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
-    ver_name = "v8_240109"
+    ver_name = "v9_240111"
     
     # チェックポイントの設定
     dt_now = datetime.datetime.now()
@@ -222,7 +147,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     )
 
     # 必要に応じてチェックポイントから再開
-    model.load_weights("./training_ckpt_20240109200453_v7_240109_d10000_n4096_b64_e80000_Adamax/cp-000000200.ckpt")
+    # model.load_weights("./training_ckpt_20240109200453_v7_240109_d10000_n4096_b64_e80000_Adamax/cp-000000200.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -278,6 +203,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 print(DATASET_NUM)
 #%%
 # fit_epoch(中間層の数, バッチサイズ, 学習回数, チェックポイントの作成タイミング, 最適化関数)
-fit_epoch(     4096,          64,        1,                  100,              "Adamax")
+fit_epoch(     4096,          64,        8000,                  100,              "Adamax")
 
 # %%
