@@ -5,16 +5,16 @@ from pyzbar.pyzbar import decode
 import time
 
 import Modules.JankenJP_Kakeibo_Parser as JankenJP_Kakeibo_Parser
-import Modules.BCD_Decorder as BCD_Decorder
-import Modules.BCD_BarCode_Formatter as BCD_BarCode_Formatter
+# import Modules.BCD_Decorder as BCD_Decorder
+# import Modules.BCD_BarCode_Formatter as BCD_BarCode_Formatter
 
 # --- Global Static Variables ---
 default_font = ("meiryo", 15)
 default_font_45px = ("meiryo", 45)
 default_font_65px = ("meiryo", 65)
 default_font_72px = ("meiryo", 72)
-model_path = "Training/TrainedModel/20240108222255_v6_240108_d10000_n512_b256_e200_Adamax"
-model = BCD_Decorder.model_loader(model_path)
+model_path = "Training/TrainedModel/20240111091913_v7_240109_d10000_n512_b32_e1_Adamax"
+# model = BCD_Decorder.model_loader(model_path)
 # ------------------------
 
 
@@ -37,6 +37,8 @@ text_raw_control = "操作エリア"
 text_raw_frame_l2__frame_upper_2__desc = "↑pyzbar(ライブラリ)版     VS           機械学習版↓       (ms)"
 text_raw_waiting = "待機中..."
 text_raw_file_select = "バーコードの\n画像ファイルを\n選択"
+text_raw_tab1 = "画像を選択"
+text_raw_tab2 = "数字から生成した画像を利用"
 # ------------------------
 
 
@@ -134,10 +136,6 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
     # ベースフレーム
     def create_basic_frames(self):
 
-        def button_event():
-            file_name = customtkinter.filedialog.askopenfilename(filetypes=[("image file", "*.png;*.jpeg;*.jpg")])
-            start_main_processes(file_name)
-
 
         self.frame_l1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1500, height=470)
         self.frame_l1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
@@ -161,8 +159,8 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=390, height=470)
         self.frame_r1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_r1.place(x=1520, y=10)
-        self.frame_r1.button = customtkinter.CTkButton(self.frame_r1, text=text_raw_file_select, width=300, height=100, font=default_font_45px, command=button_event)
-        self.frame_r1.button.place(x=10, y=10)
+        self.create_each_components_r1(self.frame_r1)
+        
 
         
         
@@ -235,7 +233,27 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         global l2__frame_upper_3__time
         l2__frame_upper_3__time = self_l2.frame_upper_3.time
 
-    
+
+
+    # R1コンポーネントを作成（画像選択とかするやつ）
+    def create_each_components_r1(self, self_r1):
+
+        def button_event():
+            file_name = customtkinter.filedialog.askopenfilename(filetypes=[("image file", "*.png;*.jpeg;*.jpg")])
+            start_main_processes(file_name)
+
+
+        tabview = customtkinter.CTkTabview(master=self_r1, width=350, height=430)
+        tabview.pack(padx=20, pady=20)
+        tabview.place(x=20, y=10)
+
+        tabview.add(text_raw_tab1)  # add tab at the end
+        tabview.add(text_raw_tab2)  # add tab at the end
+        tabview.set(text_raw_tab1)  # set currently visible tab
+
+        self_r1.button = customtkinter.CTkButton(tabview.tab(text_raw_tab1), text=text_raw_file_select, font=default_font_45px, command=button_event)
+        self_r1.button.place(x=10, y=10)
+
 
 
 
@@ -292,8 +310,8 @@ def start_main_processes(file_name):
 
 
     # 機械学習版
-    # decoded_data_ml, li_tim = "4902750910454", 1234 # テスト用！！！
-    decoded_data_ml, li_tim = BCD_Decorder.BCD_Decorder(model, file_img, file_name, BCD_BarCode_Formatter)
+    decoded_data_ml, li_tim = "4444444444444", 4444 # テスト用！！！
+    # decoded_data_ml, li_tim = BCD_Decorder.BCD_Decorder(model, file_img, file_name, BCD_BarCode_Formatter)
     
     l2__frame_upper_3__time.configure(text=str(li_tim*1000)[0:7])
 
