@@ -119,4 +119,4 @@ y
 
 #%%
 # 保存
-np.savez(SAVING_DIR, X, y)
+np.savez_compressed(SAVING_DIR, X, y)
