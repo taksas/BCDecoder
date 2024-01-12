@@ -8,6 +8,9 @@ import os
 # 画像操作
 from PIL import Image
 
+# ランダムにシャッフルして，学習・テストに分割するモジュール
+from sklearn.model_selection import ShuffleSplit
+
 
 
 #%%
@@ -117,6 +120,22 @@ X
 print(type(y))
 y
 
+
+#%%
+### データの分割
+ss = ShuffleSplit(n_splits=1,      # 分割を1個生成
+                  train_size=0.8,  # 学習
+                  test_size =0.2,  # テスト
+                  random_state=0)  # 乱数種（再現用）
+
+# 学習データとテストデータのインデックスを作成
+train_index, test_index = next(ss.split(X))
+
+X_train, X_test = X[train_index], X[test_index] # 学習データ，テストデータ
+y_train, y_test = y[train_index], y[test_index] # 学習データのラベル，テストデータのラベル
+
+
+
 #%%
 # 保存
-np.savez_compressed(SAVING_DIR, X, y)
+np.savez_compressed(SAVING_DIR, X_train, X_test, y_train, y_test)

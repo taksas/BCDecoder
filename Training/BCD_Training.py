@@ -1,5 +1,5 @@
-# v9_240111
-# (1000万個のデータセット導入検討時、番目指定印加処理が重くなりすぎ半日かかる予想になったので、その処理をBCD_Data_Processing_for_Input.pyとして別個に分けた。これで、再起動の度に印加処理をしなくて良くなった)
+# v10_240112
+# (番目指定印加処理に加え、ShuffleSplitも前処理側へ)
 
 #%%
 # 必要に応じてpip
@@ -13,9 +13,6 @@
 # 機械学習のライブラリ関連をインポート
 import pandas as pd
 import numpy as np
-
-# ランダムにシャッフルして，学習・テストに分割するモジュール
-from sklearn.model_selection import ShuffleSplit
 
 # 評価指標の計算用
 from sklearn.metrics import classification_report, confusion_matrix
@@ -42,23 +39,10 @@ import datetime
 
 #%%
 # DIRS
-DATASET_NUM = 10
+DATASET_NUM = 10000
 DIRS_DATASET = "../Training/Datasets_v0108_AfterProcessing/" + str(DATASET_NUM) + ".npz"
 
 
-
-#%%
-# NpzFile形式からXとyを取得
-npz_kw = np.load(DIRS_DATASET)
-X = npz_kw["arr_0"]
-y = npz_kw["arr_1"]
-
-#%%
-print(type(X))
-X
-#%%
-print(type(y))
-y
 
 #%%
 # ラベルデータをone-hotベクトル「から」直す
@@ -82,25 +66,9 @@ def one_hot_vector_restore(y):
 
 
 #%%
-### データの分割
-ss = ShuffleSplit(n_splits=1,      # 分割を1個生成
-                  train_size=0.8,  # 学習
-                  test_size =0.2,  # テスト
-                  random_state=0)  # 乱数種（再現用）
-
-# 学習データとテストデータのインデックスを作成
-train_index, test_index = next(ss.split(X))
-
-X_train, X_test = X[train_index], X[test_index] # 学習データ，テストデータ
-y_train, y_test = y[train_index], y[test_index] # 学習データのラベル，テストデータのラベル
-
-
-
-
-#%%
-X
-#%%
-y
+# NpzFile形式からXとyを取得
+npz_kw = np.load(DIRS_DATASET)
+X_train, X_test, y_train, y_test = npz_kw["arr_0"], npz_kw["arr_1"], npz_kw["arr_2"], npz_kw["arr_3"]
 #%%
 X_train.shape[0], X_train.shape[1]
 #%%
@@ -112,7 +80,7 @@ X_train
 # 引数は、中間層の数、バッチサイズ、epoch数
 
 def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
-    ver_name = "v9_240111"
+    ver_name = "v10_240112"
     
     # チェックポイントの設定
     dt_now = datetime.datetime.now()
@@ -147,7 +115,7 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
     )
 
     # 必要に応じてチェックポイントから再開
-    # model.load_weights("./training_ckpt_20240109200453_v7_240109_d10000_n4096_b64_e80000_Adamax/cp-000000200.ckpt")
+    # model.load_weights("./training_ckpt_20240112021047_v9_240111_d100000_n1024_b32_e8000_c100_Adamax/cp-000000100.ckpt")
 
     # 学習を実行
     hist = model.fit(X_train, y_train,
@@ -203,6 +171,6 @@ def fit_epoch(neuron, batch, epochs, ckpt_period, optimizer_name):
 print(DATASET_NUM)
 #%%
 # fit_epoch(中間層の数, バッチサイズ, 学習回数, チェックポイントの作成タイミング, 最適化関数)
-fit_epoch(     4096,          64,        8000,                  100,              "Adamax")
+fit_epoch(     1024,          32,        8000,                  100,              "Adamax")
 
 # %%
