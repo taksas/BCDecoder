@@ -3,6 +3,7 @@ from barcode.writer import ImageWriter
 from barcode.ean import JAN
 from PIL import Image
 import cv2
+import os
 
 # チェックデジットの計算
 def check_digit(code):
@@ -63,6 +64,7 @@ def image_binarization(input_image_path, threshold):
 
 
 def create(num):
+    temp_dir = "./Temp/"
     dir = "./Training/Datasets_v0108/Dataset" + str(num) + "/"
     # csvの読み込み
     while (num > 0):
@@ -74,10 +76,12 @@ def create(num):
         # JANコード画像の生成
         jan = JAN(random_number, writer=ImageWriter())
         # JANコード画像の保存
-        jan.save(dir + random_number, {'format': 'JPEG', 'quiet_zone': 1, "module_width" : 0.3, "module_height" : 5, "font_size" : 7, "text_distance" : 3})
+        jan.save(temp_dir + random_number, {'format': 'JPEG', 'quiet_zone': 1, "module_width" : 0.3, "module_height" : 5, "font_size" : 7, "text_distance" : 3})
         
         # 画像を開く
-        original_image = Image.open(dir + random_number + ".jpeg")
+        temp_image_path = temp_dir + random_number + ".jpeg"
+        # 切り取った画像を保存
+        original_image = Image.open(temp_image_path)
 
         # 画像の幅と高さを取得
         width, height = original_image.size
@@ -90,13 +94,13 @@ def create(num):
 
         # 中央部分を切り取る
         cropped_image = original_image.crop((left, top, right, bottom))
-        cropped_image_path = dir + random_number + ".jpeg"
+        
         # 切り取った画像を保存
-        cropped_image.save(cropped_image_path)
+        cropped_image.save(temp_image_path)
 
         # まずは2値化
         threshold = 150     #二値化したい閾値
-        binarized_img_array = image_binarization(cropped_image_path, threshold)
+        binarized_img_array = image_binarization(temp_image_path, threshold)
         binarized_img = Image.fromarray(binarized_img_array)
         # # print(binarized_img_raw)
         # binarized_img_raw.save('./Outputs/'  + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ".jpg")
@@ -110,8 +114,12 @@ def create(num):
 
         # 画像を切り取る
         cropped_binarized_img = binarized_img.crop((target_position_left[0], 0, target_position_right[0] + 1, 1))
+        cropped_image_path = dir + random_number + ".jpeg"
         cropped_binarized_img.save(cropped_image_path)
         # print(np.array(cropped_binarized_img))
+
+        os.remove(temp_dir + random_number + ".jpeg")
+
 
         
 
@@ -119,5 +127,5 @@ def create(num):
 
 
 if __name__=="__main__":
-    for num in [1, 10, 100, 1000, 10000]:
+    for num in [10000000]:
         create(num)
