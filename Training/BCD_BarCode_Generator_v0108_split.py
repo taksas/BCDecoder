@@ -135,3 +135,4 @@ if __name__=="__main__":
     # 合計の画像数 = batch_size * batch_num
     for i in range(batch_num):
         splitted_create(batch_size, i, batch_size * batch_num)
+        print("part:", i, " of", batch_num)
