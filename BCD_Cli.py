@@ -4,17 +4,25 @@ from PIL import Image
 from pyzbar.pyzbar import decode
 import time
 
-import Modules.JankenJP_Kakeibo_Parser as JankenJP_Kakeibo_Parser
-# import Modules.BCD_Decorder as BCD_Decorder
-# import Modules.BCD_BarCode_Formatter as BCD_BarCode_Formatter
+import Modules.BCD_Decorder as BCD_Decorder
+import Modules.BCD_BarCode_Formatter as BCD_BarCode_Formatter
+
+# テキストから適宜生成用
+import Modules.BCD_BarCode_Creater_from_Input as BCD_BarCode_Creater_from_Input
+import Modules.BCD_BarCode_Generator_v0108_COPYED as BCD_BarCode_Generator_v0108_COPYED
+
+
+
 
 # --- Global Static Variables ---
 default_font = ("meiryo", 15)
 default_font_45px = ("meiryo", 45)
 default_font_65px = ("meiryo", 65)
 default_font_72px = ("meiryo", 72)
-model_path = "Training/TrainedModel/20240111091913_v7_240109_d10000_n512_b32_e1_Adamax"
-# model = BCD_Decorder.model_loader(model_path)
+model_info = "20240114114338_v10_240112_d1000000_n512_b512_e500_Adamax"
+model_folder_path = "Training/TrainedModel/"
+model_path = model_folder_path + model_info
+model = BCD_Decorder.model_loader(model_path)
 # ------------------------
 
 
@@ -23,22 +31,26 @@ show_help = True
 l1_image_area = ""
 l2__frame_upper_1__squares = ""
 l2__frame_upper_3__squares = ""
-help_txt_raw_merchandise_search = ""
+help_txt_raw_model_info = ""
 l2__frame_upper_1__time = ""
 l2__frame_upper_3__time = ""
+r1__tab2_entry = ""
+radio1_var = ""
 # ------------------------
 
 
 # -------- Texts ---------
 text_raw_image = "入力されたバーコード画像を表示\n(これはヘルプ画面です)\n(F1キーで通常モードと切り替え)"
 text_raw_compare = "機械学習版デコーダー\nと\nPythonライブラリのデコーダー  の結果を比較"
-text_raw_merchandise_search = "特定したJANコードから商品検索(要ネット接続)"
+text_raw_model_info = "使用しているモデル情報"
 text_raw_control = "操作エリア"
 text_raw_frame_l2__frame_upper_2__desc = "↑pyzbar(ライブラリ)版     VS           機械学習版↓       (ms)"
 text_raw_waiting = "待機中..."
 text_raw_file_select = "バーコードの\n画像ファイルを\n選択"
 text_raw_tab1 = "画像を選択"
 text_raw_tab2 = "数字から生成した画像を利用"
+text_raw_r1_tab2_entry = "10桁の数字"
+text_raw_create_from_input = "バーコード画像\nを\n生成"
 # ------------------------
 
 
@@ -118,8 +130,8 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         self.frame_l3 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1900, height=100)
         self.frame_l3.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_l3.place(x=10, y=890)
-        self.help_txt_raw_merchandise_search = customtkinter.CTkLabel(master=self.frame_l3, text=text_raw_merchandise_search, font=default_font_65px)
-        self.help_txt_raw_merchandise_search.place(x=10, y=1)
+        self.help_txt_raw_model_info = customtkinter.CTkLabel(master=self.frame_l3, text=text_raw_model_info, font=default_font_65px)
+        self.help_txt_raw_model_info.place(x=10, y=1)
         
 
         self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=390, height=470)
@@ -150,10 +162,10 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         self.frame_l3 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1900, height=100)
         self.frame_l3.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_l3.place(x=10, y=890)
-        self.help_txt_raw_merchandise_search = customtkinter.CTkLabel(master=self.frame_l3, text=text_raw_waiting, font=default_font_65px)
-        self.help_txt_raw_merchandise_search.place(x=10, y=1)
-        global help_txt_raw_merchandise_search
-        help_txt_raw_merchandise_search = self.help_txt_raw_merchandise_search
+        self.help_txt_raw_model_info = customtkinter.CTkLabel(master=self.frame_l3, text=model_info, font=default_font_45px)
+        self.help_txt_raw_model_info.place(x=10, y=1)
+        global help_txt_raw_model_info
+        help_txt_raw_model_info = self.help_txt_raw_model_info
 
 
         self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=390, height=470)
@@ -238,21 +250,49 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
     # R1コンポーネントを作成（画像選択とかするやつ）
     def create_each_components_r1(self, self_r1):
 
+        # バーコードを選択するファイルピッカを表示
         def button_event():
             file_name = customtkinter.filedialog.askopenfilename(filetypes=[("image file", "*.png;*.jpeg;*.jpg")])
             start_main_processes(file_name)
-
+        
+        # 入力されたコードからバーコードを生成し、それを用いて動作させる
+        def button_create_from_input():
+            global radio1_var
+            entry = r1__tab2_entry.get()
+            print("var:", radio1_var.get())
+            print("entry:", entry)
+            if(type(entry) != str): return
+            text = ""
+            if(radio1_var.get() == 1): text += "45"
+            else: text += "49"
+            text += entry
+            print(text)
+            barcode_path = BCD_BarCode_Creater_from_Input.create_barcode_from_input(text, BCD_BarCode_Generator_v0108_COPYED)
+            start_main_processes(barcode_path)
 
         tabview = customtkinter.CTkTabview(master=self_r1, width=350, height=430)
         tabview.pack(padx=20, pady=20)
         tabview.place(x=20, y=10)
 
-        tabview.add(text_raw_tab1)  # add tab at the end
-        tabview.add(text_raw_tab2)  # add tab at the end
-        tabview.set(text_raw_tab1)  # set currently visible tab
+        tabview.add(text_raw_tab1)
+        tabview.add(text_raw_tab2) 
+        tabview.set(text_raw_tab1)  # デフォルトタブの指定
 
-        self_r1.button = customtkinter.CTkButton(tabview.tab(text_raw_tab1), text=text_raw_file_select, font=default_font_45px, command=button_event)
-        self_r1.button.place(x=10, y=10)
+        # タブ1の設定
+        self_r1.tab1_button = customtkinter.CTkButton(tabview.tab(text_raw_tab1), text=text_raw_file_select, font=default_font_45px, command=button_event)
+        self_r1.tab1_button.place(x=10, y=10)
+
+        # タブ2の設定
+        global radio1_var
+        radio1_var = customtkinter.IntVar(master=self, value=0)
+        customtkinter.CTkRadioButton(master=tabview.tab(text_raw_tab2), text="45", font=default_font_45px, variable=radio1_var, value=1).place(x=10, y=0)
+        customtkinter.CTkRadioButton(master=tabview.tab(text_raw_tab2), text="49", font=default_font_45px, variable=radio1_var, value=2).place(x=200, y=0)
+        self_r1.tab2_entry = customtkinter.CTkEntry(master=tabview.tab(text_raw_tab2), placeholder_text=text_raw_r1_tab2_entry, font=default_font_45px, width=300, height = 45)
+        self_r1.tab2_entry.place(x=10, y=70)
+        global r1__tab2_entry
+        r1__tab2_entry = self_r1.tab2_entry
+        self_r1.tab2_button = customtkinter.CTkButton(tabview.tab(text_raw_tab2), text=text_raw_create_from_input, font=default_font_45px, command=button_create_from_input)
+        self_r1.tab2_button.place(x=10, y=170)
 
 
 
@@ -310,8 +350,8 @@ def start_main_processes(file_name):
 
 
     # 機械学習版
-    decoded_data_ml, li_tim = "4444444444444", 4444 # テスト用！！！
-    # decoded_data_ml, li_tim = BCD_Decorder.BCD_Decorder(model, file_img, file_name, BCD_BarCode_Formatter)
+    # decoded_data_ml, li_tim = "4444444444444",  # テスト用！！！
+    decoded_data_ml, li_tim = BCD_Decorder.BCD_Decorder(model, file_img, file_name, BCD_BarCode_Formatter)
     
     l2__frame_upper_3__time.configure(text=str(li_tim*1000)[0:7])
 
@@ -323,13 +363,7 @@ def start_main_processes(file_name):
         square.configure(fg_color=color)
     
 
-    search_result = JankenJP_Kakeibo_Parser.JankenJP_Kakeibo_Parser(decoded_data_ml) # じゃんけんJP家計簿で商品検索
-    try:
-        search_result = search_result[0]
-    except:
-        search_result = "特定できませんでした（JANコードエラー/未登録）"
-    help_txt_raw_merchandise_search.configure(text=search_result) # L3コンポーネント（商品検索表示するやつ）を更新
-
+    
 
 
 
