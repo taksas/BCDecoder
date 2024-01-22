@@ -16,9 +16,9 @@ import Modules.BCD_BarCode_Generator_v0108_COPYED as BCD_BarCode_Generator_v0108
 
 # --- Global Static Variables ---
 default_font = ("meiryo", 15)
-default_font_45px = ("meiryo", 45)
-default_font_65px = ("meiryo", 65)
-default_font_72px = ("meiryo", 72)
+default_font_45px = ("meiryo", 25)
+default_font_65px = ("meiryo", 35)
+default_font_72px = ("meiryo", 54)
 model_info = "20240114114338_v10_240112_d1000000_n512_b512_e500_Adamax"
 model_folder_path = "Training/TrainedModel/"
 model_path = model_folder_path + model_info
@@ -44,7 +44,7 @@ text_raw_image = "入力されたバーコード画像を表示\n(これはヘ�
 text_raw_compare = "機械学習版デコーダー\nと\nPythonライブラリのデコーダー  の結果を比較"
 text_raw_model_info = "使用しているモデル情報"
 text_raw_control = "操作エリア"
-text_raw_frame_l2__frame_upper_2__desc = "↑pyzbar(ライブラリ)版     VS           機械学習版↓       (ms)"
+text_raw_frame_l2__frame_upper_2__desc = "↑pyzbar(ライブラリ)版     VS           機械学習版↓                          (ms)"
 text_raw_waiting = "待機中..."
 text_raw_file_select = "バーコードの\n画像ファイルを\n選択"
 text_raw_tab1 = "画像を選択"
@@ -101,7 +101,7 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         super().__init__()
         self.iconbitmap("Resources/icon.ico")
         self.geometry(
-            "1920x1000"
+            "1280x700"
         )  # Setting form size
         # self.attributes("-topmost", 1)   # Display at the front
         self.title("BarCodeDecorder Client")
@@ -110,33 +110,33 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
 
     # ヘルプ関連のフレームを作り、後の操作用にフレームを返す
     def create_help_frames(self):
-        self.helpframe = customtkinter.CTkFrame(master=self, border_width=0, width=1920, height=1000)
+        self.helpframe = customtkinter.CTkFrame(master=self, border_width=0, width=1280, height=700)
         self.helpframe.place(x=0, y=0)
         # self_origin = self
         self = self.helpframe
 
-        self.frame_l1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1500, height=470)
+        self.frame_l1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=900, height=300)
         self.frame_l1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_l1.place(x=10, y=10)
         self.frame_l1.help_txt_image = customtkinter.CTkLabel(master=self.frame_l1, text=text_raw_image, font=default_font_65px)
         self.frame_l1.help_txt_image.place(x=10, y=1) # 各masterフレームからの相対座標
 
-        self.frame_l2 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1900, height=390)
+        self.frame_l2 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1260, height=300)
         self.frame_l2.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
-        self.frame_l2.place(x=10, y=490)
+        self.frame_l2.place(x=10, y=320)
         self.frame_l2.help_txt_compare = customtkinter.CTkLabel(master=self.frame_l2, text=text_raw_compare, font=default_font_65px)
         self.frame_l2.help_txt_compare.place(x=10, y=1)
 
-        self.frame_l3 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1900, height=100)
+        self.frame_l3 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1260, height=60)
         self.frame_l3.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
-        self.frame_l3.place(x=10, y=890)
+        self.frame_l3.place(x=10, y=630)
         self.help_txt_raw_model_info = customtkinter.CTkLabel(master=self.frame_l3, text=text_raw_model_info, font=default_font_65px)
         self.help_txt_raw_model_info.place(x=10, y=1)
         
 
-        self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=390, height=470)
+        self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=350, height=300)
         self.frame_r1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
-        self.frame_r1.place(x=1520, y=10)
+        self.frame_r1.place(x=920, y=10)
         self.help_txt_raw_log = customtkinter.CTkLabel(master=self.frame_r1, text=text_raw_control, font=default_font_65px)
         self.help_txt_raw_log.place(x=10, y=1)
         
@@ -149,28 +149,28 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
     def create_basic_frames(self):
 
 
-        self.frame_l1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1500, height=470)
+        self.frame_l1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=900, height=300)
         self.frame_l1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
         self.frame_l1.place(x=10, y=10)
         self.create_each_components_l1(self.frame_l1)
 
-        self.frame_l2 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1900, height=390)
+        self.frame_l2 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1260, height=300)
         self.frame_l2.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
-        self.frame_l2.place(x=10, y=490)
+        self.frame_l2.place(x=10, y=320)
         self.create_each_components_l2(self.frame_l2)
 
-        self.frame_l3 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1900, height=100)
+        self.frame_l3 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=1260, height=60)
         self.frame_l3.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
-        self.frame_l3.place(x=10, y=890)
+        self.frame_l3.place(x=10, y=630)
         self.help_txt_raw_model_info = customtkinter.CTkLabel(master=self.frame_l3, text=model_info, font=default_font_45px)
         self.help_txt_raw_model_info.place(x=10, y=1)
         global help_txt_raw_model_info
         help_txt_raw_model_info = self.help_txt_raw_model_info
 
 
-        self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=390, height=470)
+        self.frame_r1 = customtkinter.CTkFrame(master=self, border_color="gray", border_width=1, width=350, height=300)
         self.frame_r1.grid(row=0, column=0, padx=15, pady=15, sticky="nsew")
-        self.frame_r1.place(x=1520, y=10)
+        self.frame_r1.place(x=920, y=10)
         self.create_each_components_r1(self.frame_r1)
         
 
@@ -183,8 +183,8 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
 
     # L1コンポーネントを作成（画像を表示するやつ）
     def create_each_components_l1(self, self_l1):
-        img = resize_image_with_aspect_ratio("Resources/title.png", (1490, 460))
-        tk_image = customtkinter.CTkImage(light_image=img, size=(1490, 460))
+        img = resize_image_with_aspect_ratio("Resources/title.png", (890, 290))
+        tk_image = customtkinter.CTkImage(light_image=img, size=(890, 290))
         self_l1.image_area = customtkinter.CTkLabel(master=self_l1, image=tk_image, text='')
         self_l1.image_area.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
         global l1_image_area
@@ -192,8 +192,8 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
     
     # L1コンポーネントを「更新」
     def update_each_components_l1(self, file_name):
-        img = resize_image_with_aspect_ratio(file_name, (1490, 460))
-        tk_image = customtkinter.CTkImage(light_image=img, size=(1490, 460))
+        img = resize_image_with_aspect_ratio(file_name, (890, 290))
+        tk_image = customtkinter.CTkImage(light_image=img, size=(890, 290))
         l1_image_area.configure(image=tk_image)
     
 
@@ -201,11 +201,11 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
     def create_each_components_l2(self, self_l2):
 
         # ライブラリ版部分
-        self_l2.frame_upper_1 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=1880, height=100)
+        self_l2.frame_upper_1 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=800, height=70)
         self_l2.frame_upper_1.place(x=10, y=10)
         self_l2.frame_upper_1.squares = []
         for i in range(13):
-            temp_square = customtkinter.CTkFrame(master=self_l2.frame_upper_1, border_color="gray", border_width=1, width=110, height=110)
+            temp_square = customtkinter.CTkFrame(master=self_l2.frame_upper_1, border_color="gray", border_width=1, width=84, height=84)
             temp_square.grid(row=0, column=i, padx=5, pady=5, sticky="s")
 
             temp_square.text_area = customtkinter.CTkLabel(master=temp_square, text="", font=default_font_72px, fg_color="transparent") # 各数字用label
@@ -213,24 +213,33 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
             self_l2.frame_upper_1.squares.append(temp_square)
         global l2__frame_upper_1__squares
         l2__frame_upper_1__squares = self_l2.frame_upper_1.squares
-        # 処理速度計測用
-        customtkinter.CTkLabel(master=self_l2.frame_upper_1, text=" ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
-        self_l2.frame_upper_1.time = customtkinter.CTkLabel(master=self_l2.frame_upper_1, text="? ? ? ?", font=default_font_65px)
-        self_l2.frame_upper_1.time.grid(row=0, column=14, padx=5, pady=5, sticky="s")
+       
+        # 説明部分のフレーム
+        self_l2.frame_upper_2 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=1240, height=90)
+        self_l2.frame_upper_2.place(x=10, y=100)
+
+
+
+        # 説明用ラベル
+        customtkinter.CTkLabel(master=self_l2.frame_upper_2, text=text_raw_frame_l2__frame_upper_2__desc, font=default_font_65px).place(x=10, y=25)
+
+         # 処理速度計測用(ライブラリ)
+        self_l2.frame_upper_1.time = customtkinter.CTkLabel(master=self_l2.frame_upper_2, text="? ? ? ?", font=default_font_65px)
+        self_l2.frame_upper_1.time.place(x=1000, y=0)
         global l2__frame_upper_1__time
         l2__frame_upper_1__time = self_l2.frame_upper_1.time
 
-        # 説明部分
-        self_l2.frame_upper_2 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=1880, height=100)
-        self_l2.frame_upper_2.place(x=10, y=140)
-        customtkinter.CTkLabel(master=self_l2.frame_upper_2, text=text_raw_frame_l2__frame_upper_2__desc, font=default_font_65px).place(x=10, y=10)
+
+
+        
+
 
         # 機械学習版部分
-        self_l2.frame_upper_3 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=1880, height=100)
-        self_l2.frame_upper_3.place(x=10, y=260)
+        self_l2.frame_upper_3 = customtkinter.CTkFrame(master=self_l2, fg_color="transparent", border_width=0, width=800, height=100)
+        self_l2.frame_upper_3.place(x=10, y=200)
         self_l2.frame_upper_3.squares = []
         for i in range(13):
-            temp_square = customtkinter.CTkFrame(master=self_l2.frame_upper_3, border_color="gray", border_width=1, width=110, height=110)
+            temp_square = customtkinter.CTkFrame(master=self_l2.frame_upper_3, border_color="gray", border_width=1, width=84, height=84)
             temp_square.grid(row=0, column=i, padx=5, pady=5, sticky="s")
 
             temp_square.text_area = customtkinter.CTkLabel(master=temp_square, text="", font=default_font_72px, fg_color="transparent") # 各数字用label
@@ -239,9 +248,8 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         global l2__frame_upper_3__squares
         l2__frame_upper_3__squares = self_l2.frame_upper_3.squares
         # 処理速度計測用
-        customtkinter.CTkLabel(master=self_l2.frame_upper_3, text=" ", font=default_font_65px).grid(row=0, column=13, padx=5, pady=5, sticky="s")
-        self_l2.frame_upper_3.time = customtkinter.CTkLabel(master=self_l2.frame_upper_3, text="? ? ? ?", font=default_font_65px)
-        self_l2.frame_upper_3.time.grid(row=0, column=14, padx=5, pady=5, sticky="s")
+        self_l2.frame_upper_3.time = customtkinter.CTkLabel(master=self_l2.frame_upper_2, text="? ? ? ?", font=default_font_65px)
+        self_l2.frame_upper_3.time.place(x=1000, y=50)
         global l2__frame_upper_3__time
         l2__frame_upper_3__time = self_l2.frame_upper_3.time
 
@@ -270,9 +278,9 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
             barcode_path = BCD_BarCode_Creater_from_Input.create_barcode_from_input(text, BCD_BarCode_Generator_v0108_COPYED)
             start_main_processes(barcode_path)
 
-        tabview = customtkinter.CTkTabview(master=self_r1, width=350, height=430)
+        tabview = customtkinter.CTkTabview(master=self_r1, width=330, height=280)
         tabview.pack(padx=20, pady=20)
-        tabview.place(x=20, y=10)
+        tabview.place(x=10, y=10)
 
         tabview.add(text_raw_tab1)
         tabview.add(text_raw_tab2) 
@@ -286,13 +294,13 @@ class App(customtkinter.CTk):  # CustomTKinter (GUI) Class
         global radio1_var
         radio1_var = customtkinter.IntVar(master=self, value=0)
         customtkinter.CTkRadioButton(master=tabview.tab(text_raw_tab2), text="45", font=default_font_45px, variable=radio1_var, value=1).place(x=10, y=0)
-        customtkinter.CTkRadioButton(master=tabview.tab(text_raw_tab2), text="49", font=default_font_45px, variable=radio1_var, value=2).place(x=200, y=0)
-        self_r1.tab2_entry = customtkinter.CTkEntry(master=tabview.tab(text_raw_tab2), placeholder_text=text_raw_r1_tab2_entry, font=default_font_45px, width=300, height = 45)
-        self_r1.tab2_entry.place(x=10, y=70)
+        customtkinter.CTkRadioButton(master=tabview.tab(text_raw_tab2), text="49", font=default_font_45px, variable=radio1_var, value=2).place(x=100, y=0)
+        self_r1.tab2_entry = customtkinter.CTkEntry(master=tabview.tab(text_raw_tab2), placeholder_text=text_raw_r1_tab2_entry, font=default_font_45px, width=180, height = 45)
+        self_r1.tab2_entry.place(x=10, y=40)
         global r1__tab2_entry
         r1__tab2_entry = self_r1.tab2_entry
         self_r1.tab2_button = customtkinter.CTkButton(tabview.tab(text_raw_tab2), text=text_raw_create_from_input, font=default_font_45px, command=button_create_from_input)
-        self_r1.tab2_button.place(x=10, y=170)
+        self_r1.tab2_button.place(x=10, y=90)
 
 
 
@@ -350,7 +358,7 @@ def start_main_processes(file_name):
 
 
     # 機械学習版
-    # decoded_data_ml, li_tim = "4444444444444",  # テスト用！！！
+    # decoded_data_ml, li_tim = ("4444444444444",  4444)  # テスト用！！！
     decoded_data_ml, li_tim = BCD_Decorder.BCD_Decorder(model, file_img, file_name, BCD_BarCode_Formatter)
     
     l2__frame_upper_3__time.configure(text=str(li_tim*1000)[0:7])
