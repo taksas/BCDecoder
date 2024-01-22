@@ -1,0 +1,9 @@
+###### Requirements without Version Specifiers ######`
+customtkinter
+keyboard
+pillow
+pyzbar
+python-barcode
+tensorflow
+numpy
+opencv-python
