@@ -7,3 +7,5 @@ python-barcode
 tensorflow
 numpy
 opencv-python
+wave
+pyaudio

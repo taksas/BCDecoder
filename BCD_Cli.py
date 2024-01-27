@@ -11,7 +11,16 @@ import Modules.BCD_BarCode_Formatter as BCD_BarCode_Formatter
 import Modules.BCD_BarCode_Creater_from_Input as BCD_BarCode_Creater_from_Input
 import Modules.BCD_BarCode_Generator_v0108_COPYED as BCD_BarCode_Generator_v0108_COPYED
 
+# 効果音再生用
+import wave
+import pyaudio
 
+
+
+
+# ------- Settings -------
+settings_funny_mode = False        # 機械学習版の表示をもっとファニーに。しかし負荷が高い
+# ------------------------
 
 
 # --- Global Static Variables ---
@@ -332,6 +341,31 @@ def toggle_help_mode(key):
 keyboard.on_press_key("f1", toggle_help_mode) # ヘルプモード用F1キー登録
 
 
+
+
+
+def play_wav(filename):
+    wav_file = wave.open(filename, 'rb')
+    p = pyaudio.PyAudio()
+    stream = p.open(format=p.get_format_from_width(wav_file.getsampwidth()),
+                    channels=wav_file.getnchannels(),
+                    rate=wav_file.getframerate(),
+                    output=True)
+
+    data = wav_file.readframes(1024)
+    while data:
+        stream.write(data)
+        data = wav_file.readframes(1024)
+
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
+
+
+
+
+
 # メイン機能
 def start_main_processes(file_name):
     file_img = Image.open(file_name)
@@ -363,12 +397,26 @@ def start_main_processes(file_name):
     
     l2__frame_upper_3__time.configure(text=str(li_tim*1000)[0:7])
 
+
     # L2フレーム内機械学習版表示領域を更新
-    for decoded_char_li, decoded_char_ml, square in zip(decoded_data_library, decoded_data_ml, l2__frame_upper_3__squares):
-        square.text_area.configure(text=decoded_char_ml)
-        color = "green"
-        if(decoded_char_li != decoded_char_ml): color = "red"
-        square.configure(fg_color=color)
+    if settings_funny_mode:
+        for decoded_char_li, decoded_char_ml, square in zip(decoded_data_library, decoded_data_ml, l2__frame_upper_3__squares):
+            square.text_area.configure(text=decoded_char_ml)
+            color = "red"
+            wav_path = "Resources/Quiz-Wrong_Buzzer02-1.wav" # こいつがファニー
+            if(decoded_char_li == decoded_char_ml): 
+                color = "green"
+                wav_path = "Resources/Quiz-Correct_Answer02-1.wav" # こいつがファニー
+            
+            play_wav(wav_path) # こいつがファニー
+            square.configure(fg_color=color)
+            app.after(250)  # こいつがファニー
+    else:
+        for decoded_char_li, decoded_char_ml, square in zip(decoded_data_library, decoded_data_ml, l2__frame_upper_3__squares):
+            square.text_area.configure(text=decoded_char_ml)
+            color = "green"
+            if(decoded_char_li != decoded_char_ml): color = "red"
+            square.configure(fg_color=color)
     
 
     
