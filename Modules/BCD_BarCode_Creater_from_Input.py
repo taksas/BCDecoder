@@ -15,10 +15,15 @@ def create_barcode_from_input(text, BCD_BarCode_Generator_v0108):
     # JANコード画像の生成
     jan = JAN(random_number, writer=ImageWriter())
     # JANコード画像の保存
-    jan.save(temp_dir + random_number, {'format': 'JPEG', 'quiet_zone': 1, "module_width" : 0.3, "module_height" : 5, "font_size" : 7, "text_distance" : 3})
+    jan.save(temp_dir + random_number, {'format': 'JPEG', 'quiet_zone': 1, "module_width" : 0.3, "module_height" : 5, "font_size" : 1, "text_distance" : 5})
     
     # 画像のパス
     temp_image_path = temp_dir + random_number + ".jpeg"
+
+    # 数字部分以外切り取り
+    temp_image = Image.open(temp_image_path)
+    width, height = temp_image.size
+    temp_image.crop((0, 0, width, 85)).save(temp_image_path)
 
     # 2値化
     threshold = 150     #二値化したい閾値
